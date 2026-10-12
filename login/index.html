@@ -382,7 +382,7 @@
                 </button>
 
                 <div class="auth-footer-link">
-                    Belum terdaftar sebagai investor? <a href="https://akun.investasiumkm.my.id/register">Daftar Sekarang</a>
+                    Belum terdaftar sebagai investor? <a href="daftar.html">Daftar Sekarang</a>
                 </div>
             </form>
         </div>
@@ -418,6 +418,14 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lZXp5aHlncHV1Y2dkamVkaHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mjk1NTgsImV4cCI6MjEwNzQwNTU1OH0.rMmoyfx2r6VdOfXrEIDI2DX5F39yX2p8QNX5NC0uFhs'; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Jika user sudah memiliki sesi login aktif, langsung alihkan ke halaman investasi
+        window.onload = function() {
+            const activeEmail = localStorage.getItem('umkm_current_email');
+            if (activeEmail) {
+                window.location.href = 'https://investasiumkm.my.id/investasi';
+            }
+        };
+
         async function handleLogin(e) {
             e.preventDefault();
 
@@ -436,6 +444,7 @@
                 return;
             }
 
+            // Simpan sesi aktif ke localStorage
             localStorage.setItem('umkm_current_email', data.email);
 
             showToast('Login Berhasil', `Selamat datang kembali, ${data.name}! Mengalihkan...`);
