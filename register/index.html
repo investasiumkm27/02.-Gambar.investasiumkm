@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts: Inter & Plus Jakarta Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* ==========================================
@@ -307,7 +309,7 @@
                     <span class="brand-title">Investasi <span>UMKM</span></span>
                 </div>
             </a>
-            <a href="index.html" class="btn-back-link">
+            <a href="https://investasiumkm.my.id/investasi" class="btn-back-link">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Portal
             </a>
         </div>
@@ -319,7 +321,7 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">
-                        <i class="fa-solid fa-user-plus text-emerald"></i> Pendaftaran Akun Baru
+                        <i class="fa-solid fa-user-plus text-emerald"></i> Pendaftaran Akun Resmi
                     </h2>
                     <p class="panel-subtitle">Lengkapi data diri Anda untuk membuat akun portofolio</p>
                 </div>
@@ -387,40 +389,68 @@
     </div>
 
     <script>
-        function handleRegister(e) {
+        /* ==========================================================================
+           SUPABASE CONFIGURATION & INTEGRATION
+           ========================================================================== */
+        const SUPABASE_URL = 'https://oeezyhygpuucgdjedhve.supabase.co'; // Contoh: 'https://xxxx.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lZXp5aHlncHV1Y2dkamVkaHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mjk1NTgsImV4cCI6MjEwNzQwNTU1OH0.rMmoyfx2r6VdOfXrEIDI2DX5F39yX2p8QNX5NC0uFhs'; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function handleRegister(e) {
             e.preventDefault();
 
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
             const phone = document.getElementById('regPhone').value;
             const address = document.getElementById('regAddress').value;
+            const password = document.getElementById('regPassword').value;
             const photoInput = document.getElementById('regPhoto');
             
             let userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80";
 
             if (photoInput.files && photoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    userAvatar = event.target.result;
-                    saveUserData(name, email, userAvatar);
-                };
-                reader.readAsDataURL(photoInput.files[0]);
-            } else {
-                saveUserData(name, email, userAvatar);
+                const file = photoInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const filePath = `avatars/${fileName}`;
+
+                // Upload foto ke Supabase Storage (pastikan bucket bernama 'profiles' sudah dibuat)
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('profiles')
+                    .upload(filePath, file);
+
+                if (!uploadError) {
+                    const { data: publicURLData } = supabaseClient.storage
+                        .from('profiles')
+                        .getPublicUrl(filePath);
+                    userAvatar = publicURLData.publicUrl;
+                }
             }
-        }
 
-        function saveUserData(name, email, avatar) {
-            const userData = {
-                name: name,
-                email: email,
-                avatar: avatar,
-                balance: 0,
-                activeDeposit: 0,
-                totalProfit: 0
-            };
+            // Simpan data pengguna ke tabel database 'users' dengan saldo awal Rp 0
+            const { error: insertError } = await supabaseClient
+                .from('users')
+                .insert([
+                    {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        address: address,
+                        password: password,
+                        avatar_url: userAvatar,
+                        balance: 0,
+                        active_deposit: 0,
+                        total_profit: 0
+                    }
+                ]);
 
-            localStorage.setItem('umkm_user', JSON.stringify(userData));
+            if (insertError) {
+                showToast('Pendaftaran Gagal', insertError.message, 'error');
+                return;
+            }
+
+            // Simpan email sesi aktif ke localStorage agar portal tahu user siapa yang login
+            localStorage.setItem('umkm_current_email', email);
 
             showToast('Pendaftaran Berhasil', 'Akun berhasil dibuat. Mengalihkan ke portal...');
 
@@ -429,10 +459,16 @@
             }, 1500);
         }
 
-        function showToast(title, message) {
+        function showToast(title, message, type = 'success') {
             const toast = document.getElementById('toastNotification');
             document.getElementById('toastTitle').innerText = title;
             document.getElementById('toastMessage').innerText = message;
+            
+            if (type === 'error') {
+                document.getElementById('toastIcon').style.color = "#dc2626";
+                toast.style.borderLeftColor = "#dc2626";
+            }
+            
             toast.classList.add('show');
         }
     </script>
