@@ -409,7 +409,27 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-client.js"></script>
+    <script>
+const SUPABASE_URL = 'https://akuvhkmwgwocjmazzrip.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrdXZoa213Z3dvY2ptYXp6cmlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mjk1MjksImV4cCI6MjEwNzQwNTUyOX0.iqjJu6fewgEJt7WRIAs0ghuN_2538NL_xZZcevWXpGA';
+
+if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    throw new Error('Supabase SDK tidak berhasil dimuat. Periksa koneksi internet dan CDN.');
+}
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    }
+});
+
+function showSupabaseError(error, fallbackMessage) {
+    console.error(fallbackMessage, error);
+    return error && error.message ? error.message : fallbackMessage;
+}
+    </script>
     <script>
         async function initializeLogin() {
             try {
