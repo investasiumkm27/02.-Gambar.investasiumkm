@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestasiUMKM - Pendaftaran Akun Resmi</title>
+    <title>InvestasiUMKM - Pendaftaran Akun</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts: Inter & Plus Jakarta Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Supabase JS Client CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* ==========================================
@@ -301,7 +299,7 @@
     <!-- Header Navigation -->
     <header>
         <div class="max-w-container header-content">
-            <a href="#" class="brand-logo-group">
+            <a href="index.html" class="brand-logo-group">
                 <div class="brand-icon">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
@@ -309,7 +307,7 @@
                     <span class="brand-title">Investasi <span>UMKM</span></span>
                 </div>
             </a>
-            <a href="https://investasiumkm.my.id/investasi" class="btn-back-link">
+            <a href="login.html" class="btn-back-link">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Portal
             </a>
         </div>
@@ -321,9 +319,9 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">
-                        <i class="fa-solid fa-user-plus text-emerald"></i> Pendaftaran Akun Resmi
+                        <i class="fa-solid fa-user-plus text-emerald"></i> Pendaftaran Akun
                     </h2>
-                    <p class="panel-subtitle">Lengkapi data diri Anda untuk membuat akun portofolio</p>
+                    <p class="panel-subtitle">Akun dan profil disimpan di Supabase. Saldo dan paket hanya simulasi, bukan transaksi uang sungguhan.</p>
                 </div>
             </div>
 
@@ -371,9 +369,9 @@
         <div class="footer-content max-w-container">
             <div style="font-weight:700; color:var(--primary-navy); display:flex; align-items:center; gap:0.4rem; font-size:0.75rem;">
                 <i class="fa-solid fa-shield-halved text-emerald"></i>
-                <span>PT InvestasiUMKM Indonesia Technologies</span>
+                <span>InvestasiUMKM — Simulasi Portofolio</span>
             </div>
-            <p>© 2026 InvestasiUMKM Indonesia. Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+            <p>Demo simulasi; bukan layanan keuangan atau transaksi uang sungguhan.</p>
         </div>
     </footer>
 
@@ -388,75 +386,103 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
     <script>
         /* ==========================================================================
-           SUPABASE CONFIGURATION & INTEGRATION
+           SUPABASE AUTH REGISTRATION
            ========================================================================== */
-        const SUPABASE_URL = 'https://oeezyhygpuucgdjedhve.supabase.co'; // Contoh: 'https://xxxx.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lZXp5aHlncHV1Y2dkamVkaHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4Mjk1NTgsImV4cCI6MjEwNzQwNTU1OH0.rMmoyfx2r6VdOfXrEIDI2DX5F39yX2p8QNX5NC0uFhs'; 
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function initializeRegistration() {
+            try {
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (error) {
+                showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat memeriksa sesi.'), 'error');
+                return;
+            }
+            if (data.session) window.location.href = 'investasi.html';
+            } catch (error) {
+                showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat terhubung ke Supabase.'), 'error');
+            }
+        }
+        initializeRegistration();
 
         async function handleRegister(e) {
             e.preventDefault();
 
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const phone = document.getElementById('regPhone').value;
-            const address = document.getElementById('regAddress').value;
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('regPhone').value.trim();
+            const address = document.getElementById('regAddress').value.trim();
             const password = document.getElementById('regPassword').value;
             const photoInput = document.getElementById('regPhoto');
             
-            let userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80";
-
             if (photoInput.files && photoInput.files[0]) {
                 const file = photoInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const filePath = `avatars/${fileName}`;
-
-                // Upload foto ke Supabase Storage (pastikan bucket bernama 'profiles' sudah dibuat)
-                const { error: uploadError } = await supabaseClient.storage
-                    .from('profiles')
-                    .upload(filePath, file);
-
-                if (!uploadError) {
-                    const { data: publicURLData } = supabaseClient.storage
-                        .from('profiles')
-                        .getPublicUrl(filePath);
-                    userAvatar = publicURLData.publicUrl;
+                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                    showToast('Pendaftaran Gagal', 'Foto harus berformat JPG, PNG, atau WebP.', 'error');
+                    return;
                 }
             }
 
-            // Simpan data pengguna ke tabel database 'users' dengan saldo awal Rp 0
-            const { error: insertError } = await supabaseClient
-                .from('users')
-                .insert([
-                    {
-                        name: name,
-                        email: email,
-                        phone: phone,
-                        address: address,
-                        password: password,
-                        avatar_url: userAvatar,
-                        balance: 0,
-                        active_deposit: 0,
-                        total_profit: 0
-                    }
-                ]);
-
-            if (insertError) {
-                showToast('Pendaftaran Gagal', insertError.message, 'error');
+            try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: name, phone, address } }
+            });
+            if (error) {
+                showToast('Pendaftaran Gagal', showSupabaseError(error, 'Supabase tidak dapat membuat akun.'), 'error');
+                return;
+            }
+            if (!data.user) {
+                showToast('Pendaftaran Gagal', 'Supabase tidak mengembalikan akun pengguna.', 'error');
                 return;
             }
 
-            // Simpan email sesi aktif ke localStorage agar portal tahu user siapa yang login
-            localStorage.setItem('umkm_current_email', email);
+            if (!data.session) {
+                showToast(
+                    'Konfirmasi Email Masih Aktif',
+                    'Akun sudah dibuat, tetapi Supabase belum memberikan sesi login. Di Supabase Dashboard, buka Authentication > Sign In / Providers > Email, nonaktifkan Confirm email, lalu simpan. Setelah itu pendaftaran akan langsung membuka dashboard.'
+                );
+                return;
+            }
 
-            showToast('Pendaftaran Berhasil', 'Akun berhasil dibuat. Mengalihkan ke portal...');
-
-            setTimeout(() => {
-                window.location.href = 'https://investasiumkm.my.id/investasi';
-            }, 1500);
+            const photo = photoInput.files && photoInput.files[0];
+            let photoWarning = '';
+            if (photo) {
+                const extension = photo.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+                const filePath = `${data.user.id}/${Date.now()}.${extension}`;
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('profiles')
+                    .upload(filePath, photo, { contentType: photo.type });
+                if (uploadError) {
+                    photoWarning = showSupabaseError(uploadError, 'Foto profil gagal diunggah.');
+                } else {
+                    const { data: publicUrl } = supabaseClient.storage.from('profiles').getPublicUrl(filePath);
+                    const { error: avatarError } = await supabaseClient.rpc('demo_update_avatar', {
+                        p_avatar_url: publicUrl.publicUrl
+                    });
+                    if (avatarError) {
+                        photoWarning = showSupabaseError(avatarError, 'URL foto profil gagal disimpan.');
+                    }
+                }
+            }
+            if (photoWarning) {
+                console.warn('Akun berhasil dibuat, tetapi foto profil belum tersimpan:', photoWarning);
+                showToast(
+                    'Akun Berhasil, Foto Belum Tersimpan',
+                    `${photoWarning} Pastikan policy upload bucket profiles aktif dan folder pertama pada path cocok dengan ID akun. Jalankan ulang blok Storage di supabase-setup.sql. Tetap mengalihkan ke dashboard...`,
+                    'error'
+                );
+                setTimeout(() => window.location.href = 'investasi.html?profilePhoto=failed', 1800);
+                return;
+            }
+            showToast('Pendaftaran Berhasil', 'Akun dan profil tersimpan di Supabase. Mengalihkan ke dashboard...');
+            setTimeout(() => window.location.href = 'investasi.html', 900);
+            } catch (error) {
+                showToast('Pendaftaran Gagal', showSupabaseError(error, 'Tidak dapat terhubung ke Supabase.'), 'error');
+            }
         }
 
         function showToast(title, message, type = 'success') {
@@ -466,10 +492,16 @@
             
             if (type === 'error') {
                 document.getElementById('toastIcon').style.color = "#dc2626";
+                document.getElementById('toastIcon').innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
                 toast.style.borderLeftColor = "#dc2626";
+            } else {
+                document.getElementById('toastIcon').style.color = "var(--primary-emerald)";
+                document.getElementById('toastIcon').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                toast.style.borderLeftColor = "var(--primary-emerald)";
             }
-            
+
             toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
         }
     </script>
 </body>
