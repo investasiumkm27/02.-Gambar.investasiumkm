@@ -420,7 +420,7 @@ function showSupabaseError(error, fallbackMessage) {
                 showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat memeriksa sesi.'), 'error');
                 return;
             }
-            if (data.session) window.location.href = 'https://investasiumkn/investasi';
+            if (data.session) window.location.href = 'https://investasiumkn.my.id/investasi';
             } catch (error) {
                 showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat terhubung ke Supabase.'), 'error');
             }
@@ -495,11 +495,11 @@ function showSupabaseError(error, fallbackMessage) {
                     `${photoWarning} Pastikan policy upload bucket profiles aktif dan folder pertama pada path cocok dengan ID akun. Jalankan ulang blok Storage di supabase-setup.sql. Tetap mengalihkan ke dashboard...`,
                     'error'
                 );
-                setTimeout(() => window.location.href = 'https://investasiumkn/investasi?profilePhoto=failed', 1800);
+                setTimeout(() => window.location.href = 'https://investasiumkn.my.id/investasi?profilePhoto=failed', 1800);
                 return;
             }
             showToast('Pendaftaran Berhasil', 'Akun dan profil tersimpan di Supabase. Mengalihkan ke dashboard...');
-            setTimeout(() => window.location.href = 'https://investasiumkn/investasi', 900);
+            setTimeout(() => window.location.href = 'https://investasiumkn.my.id/investasi', 900);
             } catch (error) {
                 showToast('Pendaftaran Gagal', showSupabaseError(error, 'Tidak dapat terhubung ke Supabase.'), 'error');
             }
