@@ -468,7 +468,7 @@ function showSupabaseError(error, fallbackMessage) {
             }
 
             showToast('Login Berhasil', `Selamat datang${data.user.email ? `, ${data.user.email}` : ''}. Mengalihkan...`);
-            setTimeout(() => window.location.href = 'investasi.html', 800);
+            setTimeout(() => window.location.href("https://investasiumkm.my.id/investasi"), 800);
         }
 
         function showToast(title, message, type = 'success') {
