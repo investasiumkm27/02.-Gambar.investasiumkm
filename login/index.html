@@ -438,7 +438,7 @@ function showSupabaseError(error, fallbackMessage) {
                 showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat memeriksa sesi.'), 'error');
                 return;
             }
-            if (data.session) window.location.href = 'investasi.html';
+            if (data.session) window.location.replace("https://investasiumkm.my.id/investasi");
             } catch (error) {
                 showToast('Tidak dapat memeriksa sesi', showSupabaseError(error, 'Terjadi kesalahan saat terhubung ke Supabase.'), 'error');
             }
